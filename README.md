@@ -161,6 +161,9 @@ await client.setOutputVolume("device-id", "output-id", 0.8);
 
 // Switch output to different mix
 await client.switchOutputMix("device-id", "output-id", "monitor-mix-id");
+
+// Remove output from all mixes
+await client.removeOutputFromMix("device-id", "output-id");
 ```
 
 ### Events
@@ -252,7 +255,12 @@ npm run build && node dist/examples/basic.js
    - Mute/unmute mixes
    - Toggle mix mute
 
-4. **`events.ts`** - Listening for changes
+4. **`outputs.ts`** - Controlling outputs
+   - Set output volume
+   - Switch output between mixes
+   - Remove output from all mixes
+
+5. **`events.ts`** - Listening for changes
    - Connection events
    - Channel/mix change events
    - Input/output change events

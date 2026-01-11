@@ -569,6 +569,21 @@ export class WaveLinkClient {
   }
 
   /**
+   * Remove output from all mixes (sets mixId to empty string)
+   */
+  async removeOutputFromMix(
+    deviceId: string,
+    outputId: string,
+  ): Promise<void> {
+    await this.setOutputDevice({
+      outputDevice: {
+        id: deviceId,
+        outputs: [{ id: outputId, mixId: "" }],
+      },
+    });
+  }
+
+  /**
    * Subscribe to focused app changes
    */
   async subscribeFocusedApp(enabled = true): Promise<void> {

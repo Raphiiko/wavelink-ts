@@ -1,6 +1,6 @@
 {
   "name": "@raphiiko/wavelink-ts",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TypeScript library for controlling Elgato Wave Link 3.0",
   "type": "module",
   "main": "dist/index.js",
@@ -41,7 +41,8 @@
     "dist",
     "README.md",
     "LICENSE",
-    "PROTOCOL.md"
+    "PROTOCOL.md",
+    "CHANGELOG.md"
   ],
   "devDependencies": {
     "@types/node": "^20.0.0",
