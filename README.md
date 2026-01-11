@@ -2,7 +2,7 @@
 
 A TypeScript library for controlling Elgato Wave Link 3.0 programmatically. It has been reverse engineered from Elgato's Wave Link plugin for Stream Deck.
 
-Note that this library is based on Wave Link 3.0 Beta Update 3. Keep in mind things might break with future Wave Link updates.
+> **Note:** This library is based on Wave Link 3.0 Beta Update 3. Keep in mind things might break with future Wave Link updates.
 
 ## Installation
 
