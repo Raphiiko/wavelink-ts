@@ -218,6 +218,4 @@ export type WaveLinkEventMap = {
 };
 
 export type EventName = keyof WaveLinkEventMap;
-export type EventCallback<E extends EventName> = (
-  ...args: WaveLinkEventMap[E]
-) => void;
+export type EventCallback<E extends EventName> = (...args: WaveLinkEventMap[E]) => void;

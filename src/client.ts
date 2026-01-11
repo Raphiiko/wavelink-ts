@@ -1,8 +1,4 @@
-import {
-  createWebSocket,
-  WebSocketAdapter,
-  WebSocketState,
-} from "./websocket-adapter.js";
+import { createWebSocket, WebSocketAdapter, WebSocketState } from "./websocket-adapter.js";
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
@@ -22,8 +18,10 @@ import type {
   EventName,
   EventCallback,
   WaveLinkEventMap,
-  FocusedAppChangedParams,
-  LevelMeterChangedParams,
+  InputDevice,
+  OutputDevice,
+  Channel,
+  Mix,
 } from "./types.js";
 
 /**
@@ -37,13 +35,14 @@ export class WaveLinkClient {
   private pendingRequests = new Map<
     number,
     {
-      resolve: (value: any) => void;
+      resolve: (value: unknown) => void;
       reject: (error: Error) => void;
     }
   >();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   private eventHandlers = new Map<string, Set<Function>>();
   private reconnectAttempts = 0;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isManuallyDisconnected = false;
 
   private options: Required<WaveLinkClientOptions>;
@@ -83,7 +82,7 @@ export class WaveLinkClient {
       const error = new Error(
         `Failed to connect to Wave Link after ${this.maxPortAttempts} attempts. ` +
           `Tried ports ${this.minPort}-${this.maxPort}. ` +
-          `Make sure Wave Link is running.`,
+          `Make sure Wave Link is running.`
       );
       this.emit("error", error);
       throw error;
@@ -101,24 +100,27 @@ export class WaveLinkClient {
       this.portAttempts = 0;
 
       // Set up event handlers
-      this.ws.addEventListener("message", (event: any) => {
-        const data = event.data || event;
-        this.handleMessage(typeof data === "string" ? data : data.toString());
+      this.ws.addEventListener("message", (event: unknown) => {
+        let data: unknown;
+        if (typeof event === "object" && event !== null && "data" in event) {
+          data = (event as { data: unknown }).data;
+        } else {
+          data = event;
+        }
+
+        this.handleMessage(typeof data === "string" ? data : String(data));
       });
 
       this.ws.addEventListener("close", () => {
         this.handleDisconnect();
       });
 
-      this.ws.addEventListener("error", (error: any) => {
-        this.emit(
-          "error",
-          error instanceof Error ? error : new Error(String(error)),
-        );
+      this.ws.addEventListener("error", (error: unknown) => {
+        this.emit("error", error instanceof Error ? error : new Error(String(error)));
       });
 
       this.emit("connected");
-    } catch (error) {
+    } catch {
       // Connection failed, try next port
       this.portAttempts++;
 
@@ -134,7 +136,7 @@ export class WaveLinkClient {
         const cycleError = new Error(
           `Failed to connect on ports ${this.minPort}-${this.maxPort}. ` +
             `Attempt ${Math.floor(this.portAttempts / (this.maxPort - this.minPort + 1)) + 1}. ` +
-            `Retrying...`,
+            `Retrying...`
         );
         this.emit("error", cycleError);
       }
@@ -170,10 +172,12 @@ export class WaveLinkClient {
    * Add event listener
    */
   on<E extends EventName>(event: E, callback: EventCallback<E>): void {
-    if (!this.eventHandlers.has(event)) {
-      this.eventHandlers.set(event, new Set());
+    let handlers = this.eventHandlers.get(event);
+    if (!handlers) {
+      handlers = new Set();
+      this.eventHandlers.set(event, handlers);
     }
-    this.eventHandlers.get(event)!.add(callback);
+    handlers.add(callback);
   }
 
   /**
@@ -197,10 +201,7 @@ export class WaveLinkClient {
     }
   }
 
-  private emit<E extends EventName>(
-    event: E,
-    ...args: WaveLinkEventMap[E]
-  ): void {
+  private emit<E extends EventName>(event: E, ...args: WaveLinkEventMap[E]): void {
     const handlers = this.eventHandlers.get(event);
     if (handlers) {
       handlers.forEach((handler) => {
@@ -251,10 +252,7 @@ export class WaveLinkClient {
         this.handleNotification(message as JsonRpcNotification);
       }
     } catch (error) {
-      this.emit(
-        "error",
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      this.emit("error", error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -280,7 +278,7 @@ export class WaveLinkClient {
         this.emit("inputDevicesChanged", params as InputDevicesResult);
         break;
       case "inputDeviceChanged":
-        this.emit("inputDeviceChanged", params as Partial<any>);
+        this.emit("inputDeviceChanged", params as Partial<InputDevice>);
         break;
       case "outputDevicesChanged":
         if (Array.isArray(params)) {
@@ -291,19 +289,19 @@ export class WaveLinkClient {
         }
         break;
       case "outputDeviceChanged":
-        this.emit("outputDeviceChanged", params as Partial<any>);
+        this.emit("outputDeviceChanged", params as Partial<OutputDevice>);
         break;
       case "channelsChanged":
         this.emit("channelsChanged", params as ChannelsResult);
         break;
       case "channelChanged":
-        this.emit("channelChanged", params as Partial<any>);
+        this.emit("channelChanged", params as Partial<Channel>);
         break;
       case "mixesChanged":
         this.emit("mixesChanged", params as MixesResult);
         break;
       case "mixChanged":
-        this.emit("mixChanged", params as Partial<any>);
+        this.emit("mixChanged", params as Partial<Mix>);
         break;
       case "levelMeterChanged":
         if (Array.isArray(params)) {
@@ -331,7 +329,9 @@ export class WaveLinkClient {
   }
 
   private async call<T>(method: string, params: unknown = null): Promise<T> {
-    if (!this.isConnected()) {
+    const ws = this.ws;
+
+    if (!ws || ws.readyState !== WebSocketState.OPEN) {
       throw new Error("Not connected to Wave Link");
     }
 
@@ -344,8 +344,11 @@ export class WaveLinkClient {
     };
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(id, { resolve, reject });
-      this.ws!.send(JSON.stringify(request));
+      this.pendingRequests.set(id, {
+        resolve: resolve as unknown as (value: unknown) => void,
+        reject,
+      });
+      ws.send(JSON.stringify(request));
     });
   }
 
@@ -447,11 +450,7 @@ export class WaveLinkClient {
   /**
    * Set channel volume for specific mix
    */
-  async setChannelMixVolume(
-    channelId: string,
-    mixId: string,
-    level: number,
-  ): Promise<void> {
+  async setChannelMixVolume(channelId: string, mixId: string, level: number): Promise<void> {
     await this.setChannel({
       id: channelId,
       mixes: [{ id: mixId, level }],
@@ -461,11 +460,7 @@ export class WaveLinkClient {
   /**
    * Mute or unmute a channel in specific mix
    */
-  async setChannelMixMute(
-    channelId: string,
-    mixId: string,
-    isMuted: boolean,
-  ): Promise<void> {
+  async setChannelMixMute(channelId: string, mixId: string, isMuted: boolean): Promise<void> {
     await this.setChannel({
       id: channelId,
       mixes: [{ id: mixId, isMuted }],
@@ -511,11 +506,7 @@ export class WaveLinkClient {
   /**
    * Set input device gain (0.0 - 1.0)
    */
-  async setInputGain(
-    deviceId: string,
-    inputId: string,
-    value: number,
-  ): Promise<void> {
+  async setInputGain(deviceId: string, inputId: string, value: number): Promise<void> {
     await this.setInputDevice({
       id: deviceId,
       inputs: [{ id: inputId, gain: { value, maxRange: 0 } }],
@@ -525,11 +516,7 @@ export class WaveLinkClient {
   /**
    * Mute or unmute input device
    */
-  async setInputMute(
-    deviceId: string,
-    inputId: string,
-    isMuted: boolean,
-  ): Promise<void> {
+  async setInputMute(deviceId: string, inputId: string, isMuted: boolean): Promise<void> {
     await this.setInputDevice({
       id: deviceId,
       inputs: [{ id: inputId, isMuted }],
@@ -539,11 +526,7 @@ export class WaveLinkClient {
   /**
    * Set output device volume (0.0 - 1.0)
    */
-  async setOutputVolume(
-    deviceId: string,
-    outputId: string,
-    level: number,
-  ): Promise<void> {
+  async setOutputVolume(deviceId: string, outputId: string, level: number): Promise<void> {
     await this.setOutputDevice({
       outputDevice: {
         id: deviceId,
@@ -555,11 +538,7 @@ export class WaveLinkClient {
   /**
    * Switch output to different mix
    */
-  async switchOutputMix(
-    deviceId: string,
-    outputId: string,
-    mixId: string,
-  ): Promise<void> {
+  async switchOutputMix(deviceId: string, outputId: string, mixId: string): Promise<void> {
     await this.setOutputDevice({
       outputDevice: {
         id: deviceId,
@@ -571,10 +550,7 @@ export class WaveLinkClient {
   /**
    * Remove output from all mixes (sets mixId to empty string)
    */
-  async removeOutputFromMix(
-    deviceId: string,
-    outputId: string,
-  ): Promise<void> {
+  async removeOutputFromMix(deviceId: string, outputId: string): Promise<void> {
     await this.setOutputDevice({
       outputDevice: {
         id: deviceId,
@@ -598,7 +574,7 @@ export class WaveLinkClient {
   async subscribeLevelMeter(
     type: "input" | "output" | "channel" | "mix",
     id: string,
-    enabled = true,
+    enabled = true
   ): Promise<void> {
     await this.setSubscription({
       levelMeterChanged: { type, id, isEnabled: enabled },

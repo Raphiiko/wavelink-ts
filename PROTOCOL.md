@@ -1054,9 +1054,7 @@ JSON-RPC 2.0 standard error codes:
 ```javascript
 // Get current state
 const channelsResponse = await call("getChannels", null);
-const channel = channelsResponse.result.channels.find(
-  (c) => c.id === "spotify",
-);
+const channel = channelsResponse.result.channels.find((c) => c.id === "spotify");
 
 // Toggle mute
 await call("setChannel", {

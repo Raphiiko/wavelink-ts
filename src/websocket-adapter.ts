@@ -3,22 +3,28 @@
  */
 
 // Check if we're running in Bun
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isBun = typeof (globalThis as any).Bun !== "undefined";
 
 export interface WebSocketAdapter {
   send(data: string): void;
   close(): void;
-  addEventListener(event: string, handler: (...args: any[]) => void): void;
-  removeEventListener(event: string, handler: (...args: any[]) => void): void;
+  addEventListener(event: string, handler: (...args: unknown[]) => void): void;
+  removeEventListener(event: string, handler: (...args: unknown[]) => void): void;
   readyState: number;
 }
 
 export interface WebSocketAdapterConstructor {
-  new (url: string, options?: any): WebSocketAdapter;
+  new (url: string, options?: WebSocketOptions): WebSocketAdapter;
   CONNECTING: number;
   OPEN: number;
   CLOSING: number;
   CLOSED: number;
+}
+
+export interface WebSocketOptions {
+  origin?: string;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -26,7 +32,7 @@ export interface WebSocketAdapterConstructor {
  */
 export async function createWebSocket(
   url: string,
-  options: { origin?: string } = {},
+  options: { origin?: string } = {}
 ): Promise<WebSocketAdapter> {
   if (isBun) {
     // Use Bun's native WebSocket
@@ -36,10 +42,9 @@ export async function createWebSocket(
           headers: options.origin ? { Origin: options.origin } : undefined,
         });
 
-        ws.addEventListener("open", () => resolve(ws as any));
-        ws.addEventListener("error", (event) =>
-          reject(new Error("WebSocket connection failed")),
-        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ws.addEventListener("open", () => resolve(ws as any as WebSocketAdapter));
+        ws.addEventListener("error", (_event) => reject(new Error("WebSocket connection failed")));
       } catch (error) {
         reject(error);
       }
@@ -55,15 +60,18 @@ export async function createWebSocket(
         });
 
         // Wrap Node.js ws to match Web API
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const adapter: any = ws;
 
         // Node.js ws uses .on(), but we want .addEventListener() for consistency
         if (!adapter.addEventListener) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           adapter.addEventListener = (event: string, handler: any) => {
             const nodeEvent = event === "message" ? "message" : event;
             ws.on(nodeEvent, handler);
           };
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           adapter.removeEventListener = (event: string, handler: any) => {
             const nodeEvent = event === "message" ? "message" : event;
             ws.off(nodeEvent, handler);
