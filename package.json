@@ -1,5 +1,5 @@
 {
-  "name": "wavelink-ts",
+  "name": "@raphiiko/wavelink-ts",
   "version": "1.0.0",
   "description": "TypeScript library for controlling Elgato Wave Link 3.0",
   "type": "module",
@@ -24,10 +24,25 @@
     "wavelink",
     "audio",
     "mixer",
-    "stream"
+    "stream",
+    "typescript"
   ],
-  "author": "",
+  "author": "Raphiiko",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Raphiiko/wavelink-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Raphiiko/wavelink-ts/issues"
+  },
+  "homepage": "https://github.com/Raphiiko/wavelink-ts#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "PROTOCOL.md"
+  ],
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/ws": "^8.5.10",

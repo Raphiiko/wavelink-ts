@@ -7,15 +7,20 @@ Note that this library is based on Wave Link 3.0 Beta Update 3. Keep in mind thi
 ## Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/Raphiiko/wavelink-api.git
-cd wavelink-api
+npm install @raphiiko/wavelink-ts
+```
 
-# Install dependencies
-npm install
+Or with your preferred package manager:
 
-# Build (for Node.js)
-npm run build
+```bash
+# Bun
+bun add @raphiiko/wavelink-ts
+
+# Yarn
+yarn add @raphiiko/wavelink-ts
+
+# pnpm
+pnpm add @raphiiko/wavelink-ts
 ```
 
 ## Quick Start
@@ -40,7 +45,7 @@ node examples/basic-compiled.js
 ### Basic Usage
 
 ```typescript
-import { WaveLinkClient } from "./src/index.js";
+import { WaveLinkClient } from "@raphiiko/wavelink-ts";
 
 const client = new WaveLinkClient();
 
