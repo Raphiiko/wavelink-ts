@@ -38,19 +38,25 @@ export interface ApplicationInfo {
 // Input Devices
 export interface InputDevice {
   id: string;
+  name: string;
   isWaveDevice: boolean;
   inputs: Input[];
 }
 
 export interface Input {
   id: string;
+  name: string;
   isMuted: boolean;
+  isGainLockOn?: boolean;
   gain: {
     value: number;
-    maxRange: number;
+    min?: number;
+    max?: number;
+    maxRange?: number;
   };
-  micPcMix: {
+  micPcMix?: {
     value: number;
+    isInverted?: boolean;
   };
   effects?: Effect[];
   dspEffects?: Effect[];
@@ -58,6 +64,7 @@ export interface Input {
 
 export interface Effect {
   id: string;
+  name: string;
   isEnabled: boolean;
 }
 
@@ -68,11 +75,14 @@ export interface InputDevicesResult {
 // Output Devices
 export interface OutputDevice {
   id: string;
+  name: string;
+  isWaveDevice: boolean;
   outputs: Output[];
 }
 
 export interface Output {
   id: string;
+  name: string;
   level: number;
   isMuted: boolean;
   mixId: string;
@@ -86,6 +96,7 @@ export interface OutputDevicesResult {
 // Channels
 export interface Channel {
   id: string;
+  name: string;
   type: "Software" | "Hardware";
   isMuted: boolean;
   level: number;

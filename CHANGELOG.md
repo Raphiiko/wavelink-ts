@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-12
+
+### Added
+
+- Added `name` property to `InputDevice` interface - displays the device's human-readable name
+- Added `name` property to `Input` interface - displays the input's human-readable name
+- Added `name` property to `OutputDevice` interface - displays the device's human-readable name
+- Added `name` property to `Output` interface - displays the output's human-readable name
+- Added `name` property to `Channel` interface - displays the channel's human-readable name
+- Added `name` property to `Effect` interface - displays the effect's human-readable name
+- Added `isWaveDevice` property to `InputDevice` interface - identifies Elgato Wave devices
+- Added `isWaveDevice` property to `OutputDevice` interface - identifies Elgato Wave devices
+- Added `isGainLockOn` optional property to `Input` interface - indicates if gain lock is enabled
+- Added `min` and `max` optional properties to `Input.gain` - provides gain range information
+- Added `micPcMix.isInverted` optional property to `Input` interface - indicates if mic/PC mix is inverted
+
+### Changed
+
+- Made `Input.micPcMix` optional as it's only available on Elgato Wave devices
+- Made `Input.gain.min`, `Input.gain.max`, and `Input.gain.maxRange` optional properties
+
 ## [1.1.0] - 2026-01-11
 
 ### Added
