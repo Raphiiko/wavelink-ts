@@ -88,8 +88,12 @@ export interface Output {
   mixId: string;
 }
 
+export interface MainOutput {
+  outputDeviceId: string;
+}
+
 export interface OutputDevicesResult {
-  mainOutput: string;
+  mainOutput: MainOutput;
   outputDevices: OutputDevice[];
 }
 
@@ -217,8 +221,9 @@ export type WaveLinkEventMap = {
   error: [Error];
   inputDevicesChanged: [InputDevicesResult];
   inputDeviceChanged: [Partial<InputDevice>];
-  outputDevicesChanged: [{ mainOutput: string; outputDevices: OutputDevice[] }];
+  outputDevicesChanged: [OutputDevicesResult];
   outputDeviceChanged: [Partial<OutputDevice>];
+  mainOutputDeviceChanged: [{ mainOutput: MainOutput }];
   channelsChanged: [ChannelsResult];
   channelChanged: [Partial<Channel>];
   mixesChanged: [MixesResult];

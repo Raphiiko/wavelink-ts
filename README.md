@@ -2,7 +2,7 @@
 
 A TypeScript library for controlling Elgato Wave Link 3.0 programmatically. It has been reverse engineered from Elgato's Wave Link plugin for Stream Deck.
 
-> **Note:** This library is based on Wave Link 3.0 Beta Update 3. Keep in mind things might break with future Wave Link updates.
+> **Note:** This library is based on Wave Link 3.0 Beta Update 4. Keep in mind things might break with future Wave Link updates.
 
 ## Installation
 
@@ -151,6 +151,10 @@ await client.setInputGain("device-id", "input-id", 0.8);
 
 // Mute/unmute input
 await client.setInputMute("device-id", "input-id", true);
+
+// Toggle effects (inputs have both software and hardware effects)
+// Software effects are stored in input.effects
+// Hardware/DSP effects are stored in input.dspEffects
 ```
 
 ### Controlling Outputs
@@ -204,6 +208,10 @@ client.on("inputDeviceChanged", (device) => {
 
 client.on("outputDeviceChanged", (device) => {
   console.log("Output device changed:", device);
+});
+
+client.on("mainOutputDeviceChanged", ({ mainOutput }) => {
+  console.log("Main output changed:", mainOutput);
 });
 ```
 

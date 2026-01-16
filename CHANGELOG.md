@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-16
+
+### Added
+
+- Added `mainOutputDeviceChanged` event - fires when the main output device changes
+- Added `MainOutput` interface to properly type the main output device information
+- Added documentation for `dspEffects` property on inputs (hardware effects vs software effects)
+
+### Changed
+
+- **BREAKING**: Changed `mainOutput` type from `string` to `MainOutput` object with `outputDeviceId` property
+- Updated library to support Wave Link 3.0 Beta Update 4 (previously Beta Update 3)
+- `mainOutputDeviceChanged` event is now derived from `outputDevicesChanged` by comparing mainOutput values
+
+### Fixed
+
+- Fixed `mainOutput` type to match actual Wave Link API response structure
+
 ## [1.2.0] - 2026-01-12
 
 ### Added

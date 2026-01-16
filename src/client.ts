@@ -7,6 +7,7 @@ import type {
   ApplicationInfo,
   InputDevicesResult,
   OutputDevicesResult,
+  MainOutput,
   ChannelsResult,
   MixesResult,
   SetInputDeviceParams,
@@ -44,6 +45,7 @@ export class WaveLinkClient {
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isManuallyDisconnected = false;
+  private previousMainOutput: MainOutput | null = null;
 
   private options: Required<WaveLinkClientOptions>;
   private currentPort: number = 1884;
@@ -282,9 +284,21 @@ export class WaveLinkClient {
         break;
       case "outputDevicesChanged":
         if (Array.isArray(params)) {
+          const mainOutput = params[0] as MainOutput;
+          const outputDevices = params[1] as OutputDevice[];
+
+          // Check if mainOutput has changed and emit separate event
+          if (
+            this.previousMainOutput &&
+            JSON.stringify(this.previousMainOutput) !== JSON.stringify(mainOutput)
+          ) {
+            this.emit("mainOutputDeviceChanged", { mainOutput });
+          }
+          this.previousMainOutput = mainOutput;
+
           this.emit("outputDevicesChanged", {
-            mainOutput: params[0],
-            outputDevices: params[1],
+            mainOutput,
+            outputDevices,
           });
         }
         break;
